@@ -10,3 +10,6 @@
 [submodule "classic"]
 	path = classic
 	url = git@github.com:bitcoinclassic/bitcoinclassic
+[submodule "hub"]
+	path = hub
+	url = git@github.com:floweethehub/hub.git
