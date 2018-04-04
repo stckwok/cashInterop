@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2015-2017 The Bitcoin Unlimited developers
+# Copyright (c) 2018 The Bitcoin Unlimited developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import logging
@@ -8,8 +8,8 @@ import sys
 global reporter
 import pdb
 
-#clientDirs = ["bucash", "abc", "xt", "classic"]
-#clientSubvers = set(["Bitcoin ABC", "Classic", "Bitcoin XT", "BUCash"])
+#clientDirs = ["bucash", "abc", "xt", "hub"]
+#clientSubvers = set(["Bitcoin ABC", "Flowee the Hub", "Bitcoin XT", "BUCash"])
 clientDirs = ["bucash", "abc", "xt", "bucash"]
 clientSubvers = set(["Bitcoin ABC", "Bitcoin XT", "BUCash"])
 

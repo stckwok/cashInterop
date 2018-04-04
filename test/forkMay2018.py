@@ -99,27 +99,24 @@ class ForkMay2018(BitcoinTestFramework):
         FEE = decimal.Decimal("0.0001")
         wallet = node.listunspent()
         wallet.sort(key=lambda x: x["amount"], reverse=False)
-
         size = 0
         count = 0
         decContext = decimal.getcontext().prec
         decimal.getcontext().prec = 8 + 8  # 8 digits to get to 21million, and each bitcoin is 100 million satoshis
-
         count += 1
         utxo = wallet.pop()
         outp = {}
-        if 1:
-            payamt = satoshi_round((utxo["amount"]-FEE) / decimal.Decimal(len(addrs)))
-            for x in range(0, len(addrs)):
-                # its test code, I don't care if rounding error is folded into the fee
-                outp[addrs[x]] = payamt
-            if data:
-                outp["data"] = data
-            txn = createrawtransaction([utxo], outp, script)
-            #txn = createrawtransaction([utxo], outp, createWastefulOutput)
-            signedtxn = node.signrawtransaction(txn)
-            size += len(binascii.unhexlify(signedtxn["hex"]))
-            node.sendrawtransaction(signedtxn["hex"])
+        payamt = satoshi_round((utxo["amount"]-FEE) / decimal.Decimal(len(addrs)))
+        for x in range(0, len(addrs)):
+            # its test code, I don't care if rounding error is folded into the fee
+            outp[addrs[x]] = payamt
+        if data:
+            outp["data"] = data
+        txn = createrawtransaction([utxo], outp, script)
+        #txn = createrawtransaction([utxo], outp, createWastefulOutput)
+        signedtxn = node.signrawtransaction(txn)
+        size += len(binascii.unhexlify(signedtxn["hex"]))
+        node.sendrawtransaction(signedtxn["hex"])
         decimal.getcontext().prec = decContext
         return signedtxn
 
@@ -130,8 +127,9 @@ class ForkMay2018(BitcoinTestFramework):
         addrs = [ self.nodes[0].getaddressforms(x)["legacy"] for x in addrsbch]  # TODO handle bitcoincash addrs in python
         for n in self.nodes:
             try:
-                tx = self.generateTx(n, addrs, hexlify(("*"*200).encode("utf-8")))
-                assert 0, "%s: 200 byte OP_RETURN accepted before the fork" % n.clientName
+                if ("hub" not in n.clientName):
+                    tx = self.generateTx(n, addrs, hexlify(("*"*200).encode("utf-8")))
+                    assert 0, "%s: 200 byte OP_RETURN accepted before the fork" % n.clientName
             except JSONRPCException as e:
                 pass
         time.sleep(5) # wait for tx to sync
@@ -189,6 +187,7 @@ class ForkMay2018(BitcoinTestFramework):
 def Test():
     bitcoinConf = {
         "debug": ["all"],
+        "usecashaddr": 1, "maxlimitertxfee": 0,
         "blockprioritysize": 2000000  # we don't want any transactions rejected due to insufficient fees...
     }
     t = ForkMay2018("debug", clientDirs, bitcoinConf)
