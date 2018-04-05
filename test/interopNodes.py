@@ -49,19 +49,7 @@ configXlat = {
     "forkMay2018time" : { "bucash" : "mining.forkMay2018Time",
                           "xt" : "thirdhftime",
                           "hub" : "",
-                          "abc" : "monolithactivationtime" },
-    "usecashaddr" : { "bucash" : "usecashaddr",
-                      "xt" : "usecashaddr",
-                      "hub" : "",
-                      "abc" : "usecashaddr" },
-    "maxlimitertxfee" : { "bucash" : "maxlimitertxfee",
-                          "xt" : "maxlimitertxfee",
-                          "hub" : "",
-                          "abc" : "maxlimitertxfee" },
-    "debug" : { "bucash" : "debug",
-                "xt" : "debug",
-                "hub" : "",
-                "abc" : "debug" }
+                          "abc" : "monolithactivationtime" }
 }
 
 def start(datadir, clientDirs, bins, conf):
@@ -75,8 +63,6 @@ def start(datadir, clientDirs, bins, conf):
                 del confDict[k]
                 if xlat[name]:
                     confDict[xlat[name]] = val
-                else:
-                    confDict[k] = NoConfigValue()
         test_framework.util.initialize_datadir(datadir, i, confDict)
         node = test_framework.util.start_node(i, datadir, binary=executable)
         addInteropApis(node, name)

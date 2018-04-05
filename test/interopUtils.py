@@ -5,6 +5,7 @@
 import logging
 import os
 import sys
+import signal
 global reporter
 import pdb
 
@@ -38,6 +39,12 @@ def verifyInterconnect(nodes, clientTypes=clientSubvers):
         if notConnectedTo:
             print("Client %s is not connected to %s" % (myclient, str(notConnectedTo)))
         assert(len(notConnectedTo) == 0)
+
+def kill_running_process(appName="bitcoind"):
+    for line in os.popen("ps ax | grep " + appName + " | grep -v grep"):
+        fields = line.split()
+        pid = fields[0]
+        os.kill(int(pid), signal.SIGKILL)
 
 class TCReporter(object):
     """
