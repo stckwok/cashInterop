@@ -21,7 +21,6 @@ from test_framework.blocktools import *
 from interopUtils import *
 from test_framework.key import CECKey
 from test_framework.script import *
-from test_framework.util import NoConfigValue
 import interopNodes
 
 
@@ -59,13 +58,7 @@ class ForkMay2018(BitcoinTestFramework):
         self.conf = { "forkMay2018time": self.forkTime, "acceptnonstdtxn": 0, "relaypriority": 0 }
         self.conf.update(bitcoinConfDict)
         # config required for running hub
-        if [i for i in range(len(self.bins)) if "hub/debug/src/bitcoind" in self.bins[i]]:
-            removeParams = {}
-            removeParams["usecashaddr"] = NoConfigValue()
-            removeParams["maxlimitertxfee"] = NoConfigValue()
-            self.conf.update(removeParams)
-            if "debug" in self.conf:
-                self.conf.pop("debug")
+        self.conf = remove_hubclient_parameters(self.bins, self.conf)
         logging.info(self.bins)
 
 # Comment out setup_chain() to use FW setup, which will build up cache if it does not exist. 
@@ -296,7 +289,7 @@ def Test():
             tmpdir = str(arg)
             logging.info("# User input : %s" %tmpdir)
 
-    t.main([tmpdir,"--nocleanup"])
+    t.main([tmpdir])
 
 if __name__ == "__main__":
     Test()

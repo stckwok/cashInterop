@@ -8,6 +8,7 @@ import sys
 import signal
 global reporter
 import pdb
+from test_framework.util import NoConfigValue
 
 clientDirs = ["bucash", "abc", "xt", "hub"]
 clientSubvers = set(["Bitcoin ABC", "Flowee the Hub", "Bitcoin XT", "BUCash"])
@@ -41,10 +42,23 @@ def verifyInterconnect(nodes, clientTypes=clientSubvers):
         assert(len(notConnectedTo) == 0)
 
 def kill_running_process(appName="bitcoind"):
+    """ Clean up system to start without previously leftover bitcoind """
     for line in os.popen("ps ax | grep " + appName + " | grep -v grep"):
         fields = line.split()
         pid = fields[0]
         os.kill(int(pid), signal.SIGKILL)
+
+def remove_hubclient_parameters(bins, conf):
+    """ Remove unregcogized parameters """
+    # config required for running hub  -  # TODO generalize this function
+    if [i for i in range(len(bins)) if "hub/debug/src/bitcoind" in bins[i]]:
+        removeParams = {}
+        removeParams["usecashaddr"] = NoConfigValue()
+        removeParams["maxlimitertxfee"] = NoConfigValue()
+        conf.update(removeParams)
+        if "debug" in conf:
+            conf.pop("debug")
+    return conf
 
 class TCReporter(object):
     """
