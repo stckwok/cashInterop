@@ -66,7 +66,6 @@ class ForkMay2018(BitcoinTestFramework):
             self.conf.update(removeParams)
             if "debug" in self.conf:
                 self.conf.pop("debug")
-        
         logging.info(self.bins)
 
 # Comment out setup_chain() to use FW setup, which will build up cache if it does not exist. 
@@ -105,6 +104,7 @@ class ForkMay2018(BitcoinTestFramework):
                 if ("hub" not in n.clientName):
                     n.generate(200)
                     sync_blocks(self.nodes)
+            # When Hub is used in clientDirs = ["bucash", "abc", "xt", "hub"] from interopUtils.py
             self.TestHub()
         else:
             self.preTestOpReturn()
@@ -123,6 +123,35 @@ class ForkMay2018(BitcoinTestFramework):
         self.nodes[0].generate(1)
         # mempool should be empty, all txns confirmed
         assert_equal(set(self.nodes[0].getrawmempool()), set())
+
+    def verifyExistingTxnMempool(self, n, addrsbch, name="hub", count=4):
+        """
+        Check the existing txns from sent from other clients
+        Call generate on Hub which required public addr as a second argument
+        Input:
+            n : client that does not have txn sent yet
+            addrsbch : bch addresses of all 4 clients
+            name : client name is not being verified here
+            count : number of txns should be in the mempool from other clients
+        """
+        if (name in n.clientName):
+            # validate txns in mempool from other clients
+            mp = [ x.getmempoolinfo()["size"] for x in self.nodes]
+            print("memory pools are %s" % str(mp))
+            txn_count = count-1
+            assert mp == [txn_count, txn_count, txn_count, txn_count], "transaction was not relayed to all nodes %s" % str(mp)
+
+            # only pick up hub addr to use the generate interface which requires public key
+            coinbase0 = [x for x in addrsbch if len(x.split(':'))==1]
+            pubkey = n.validateaddress(coinbase0[0])['pubkey']
+            # generate enough blocks so that hub client node has a balance
+            n.generate(200, pubkey) # hub need blocks and public addr
+            self.sync_blocks()
+
+            # after mined block and mempool should be cleared
+            mp = [ x.getmempoolinfo()["size"] for x in self.nodes]
+            print("memory pools are %s" % str(mp))
+            assert mp == [0, 0, 0, 0], "transaction was not relayed to all nodes %s" % str(mp)
 
     def generateTx(self, node, addrs, data=None, script=p2pkh):
         FEE = decimal.Decimal("0.0001")
@@ -143,45 +172,51 @@ class ForkMay2018(BitcoinTestFramework):
         if data:
             outp["data"] = data
         txn = createrawtransaction([utxo], outp, script)
-        #txn = createrawtransaction([utxo], outp, createWastefulOutput)
         signedtxn = node.signrawtransaction(txn)
         size += len(binascii.unhexlify(signedtxn["hex"]))
-        node.sendrawtransaction(signedtxn["hex"])
+        #node.sendrawtransaction(signedtxn["hex"])
+        try:
+            node.sendrawtransaction(signedtxn["hex"])
+        except Exception as e:
+            print(e)
+            assert 0, "%s: sendrawtransaction failed" % node.clientName
         decimal.getcontext().prec = decContext
         return signedtxn
 
     @assert_capture()
     def TestHub(self):
         cnxns = [ x.getconnectioncount() for x in self.nodes]
-        addrsbch = [ x.getnewaddress() for x in self.nodes ]
-        addrs = [ self.nodes[0].getaddressforms(x)["legacy"] for x in addrsbch ]  # TODO handle bitcoincash addrs in python
+        addrsbch = [ x.getnewaddress() for x in self.nodes]
+        addrs = [ self.nodes[0].getaddressforms(x)["legacy"] for x in addrsbch]  # TODO handle bitcoincash addrs in python
         #print(addrs)
-        # only pick up hub addr to use the generate interface which requires public key
-        coinbase0 = [x for x in addrsbch if len(x.split(':'))==1]
+        count=1
         for n in self.nodes:
-            try:
-                print("\n==> n.clientName = ", n.clientName)
-                # generate needs pubkey as 2nd argument
-                if ("hub" in n.clientName):
-                    pubkey = n.validateaddress(coinbase0[0])['pubkey']
-                    # generate enough blocks so that hub client node has a balance
-                    n.generate(200, pubkey) # hub need blocks and public addr
-                    self.sync_blocks()
-                tx = self.generateTx(n, addrs)
-                #print(tx)
-            except JSONRPCException as e:
-                print(e)
-                pass
-        time.sleep(5) # wait for tx to sync
+            self.verifyExistingTxnMempool(n, addrsbch, "hub", count)
+            tx = self.generateTx(n, addrs)
+            mp = [0]*4
+            tries = 10
+            while mp != [count]*4 and tries > 0:
+                tries -= 1
+                time.sleep(2) # wait for tx to sync
+                try:
+                    mp = [ x.getmempoolinfo()["size"] for x in self.nodes]
+                except Exception as e:
+                    print(e)
+            print("memory pools are %s" % str(mp))
+            assert [ x.getconnectioncount() for x in self.nodes] == cnxns # make sure nobody dropped or banned
+            count += 1
+
+        #only one txn of client Hub left in the mempool
         mp = [ x.getmempoolinfo()["size"] for x in self.nodes]
         print("memory pools are %s" % str(mp))
-        self.nodes[0].generate(1)
-        self.sync_blocks()
+        assert mp == [1, 1, 1, 1], "transaction was not relayed to all nodes %s" % str(mp)
         
+        node = self.nodes[0]
+        node.generate(2)
+        sync_blocks(self.nodes)
         mp = [ x.getmempoolinfo()["size"] for x in self.nodes]
         print("memory pools are %s" % str(mp))
-        assert mp == [0,0,0,0]
-        assert [ x.getconnectioncount() for x in self.nodes] == cnxns # make sure nobody dropped or banned
+        assert mp == [0,0,0,0], "transaction was not relayed to all nodes %s" % str(mp)
 
     @assert_capture()
     def preTestOpReturn(self):

@@ -9,10 +9,10 @@ import signal
 global reporter
 import pdb
 
-#clientDirs = ["bucash", "abc", "xt", "hub"]
-#clientSubvers = set(["Bitcoin ABC", "Flowee the Hub", "Bitcoin XT", "BUCash"])
-clientDirs = ["bucash", "abc", "xt", "bucash"]
-clientSubvers = set(["Bitcoin ABC", "Bitcoin XT", "BUCash"])
+clientDirs = ["bucash", "abc", "xt", "hub"]
+clientSubvers = set(["Bitcoin ABC", "Flowee the Hub", "Bitcoin XT", "BUCash"])
+#clientDirs = ["bucash", "abc", "xt", "bucash"]
+#clientSubvers = set(["Bitcoin ABC", "Bitcoin XT", "BUCash"])
 
 #clientDirs = ["bucash", "bucash", "bucash", "bucash"]
 #clientSubvers = set(["BUCash"])
