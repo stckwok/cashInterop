@@ -20,7 +20,6 @@ clean:
 	-(cd abc/$(VARIANT); make clean)
 	-(cd hub/$(VARIANT); make clean)
 
-
 bu:
 	(cd bucash; ./autogen.sh)
 	(cd bucash; mkdir -p $(VARIANT))
