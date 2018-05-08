@@ -1,9 +1,10 @@
 # cashInterop
-Three bitcoin clients are used for InterOperability testing
+Four bitcoin clients are used for InterOperability testing
 
 * [BitcoinUnlimited](https://github.com/BitcoinUnlimited/BitcoinUnlimited)
 * [Bitcoin-ABC](https://github.com/Bitcoin-ABC/bitcoin-abc)
 * [Bitcoin-XT](https://github.com/bitcoinxt/bitcoinxt)
+* [Bitcoin-Floweethehub](https://github.com/floweethehub/hub)
 
 
 Setup
@@ -30,7 +31,7 @@ Setup
 	$ ./update-submodules.sh
 	```
 
-Alternatively, you may also follow steps 4 to 8 to manually fallback to the ABC github branch.
+Alternatively, you may also follow steps 4 to 9 to manually fallback to the ABC github branch.
 
 4. Change directory to cashInterop, and enter the following command to clone the ABC submodule
 
@@ -65,6 +66,12 @@ Alternatively, you may also follow steps 4 to 8 to manually fallback to the ABC 
         $ git checkout master && git pull --ff origin master
 	```
 
+9. Change directory to hub, and check out the 'master' branch for HUB 
+
+	```
+	$ cd ../hub
+        $ git checkout master && git pull --ff origin master
+	```
 Dependencies
 =====================
 Make sure all package dependencies are installed (see Quick installation instructions section in [BitcoinUnlimited](https://github.com/BitcoinUnlimited/BitcoinUnlimited)). 
@@ -96,6 +103,7 @@ Building Project
 	$ make bu 
 	$ make xt 
 	$ make abc
+	$ make hub 
 	```
 
 2. Building all three clients 
@@ -110,6 +118,7 @@ Building Project
 	$ ls -la bucash/debug/src/bitcoin* 
 	$ ls -la xt/debug/src/bitcoin* 
 	$ ls -la abc/debug/src/bitcoin* 
+	$ ls -la hub/debug/src/bitcoin* 
 	```
 
 Running tests
